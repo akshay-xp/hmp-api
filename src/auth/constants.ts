@@ -1,12 +1,14 @@
 import { CookieOptions } from 'express';
 
-export const refreshTokenAge = 24 * 60 * 60 * 1000;
-export const accessTokenAge = 15 * 60 * 1000;
+// requires seconds
+export const refreshTokenAge = 24 * 60 * 60;
+export const accessTokenAge = 15 * 60;
 
 export const refreshTokenCookieOptions: CookieOptions = {
   httpOnly: true,
   sameSite: 'strict',
   secure: true,
-  maxAge: refreshTokenAge,
+  // requires milliseconds
+  maxAge: refreshTokenAge * 1000,
   path: '/auth',
 };
