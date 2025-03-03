@@ -13,7 +13,20 @@ async function bootstrap() {
   const webUrl = config.get<string>('WEB_URL');
 
   // set security HTTP headers
-  app.use(helmet());
+  app.use(
+    helmet({
+      xFrameOptions: {
+        action: 'deny',
+      },
+      contentSecurityPolicy: {
+        directives: {
+          defaultSrc: ["'none'"],
+          scriptSrc: ["'none'"],
+          requireTrustedTypesFor: ["'script'"],
+        },
+      },
+    }),
+  );
 
   // enable CORS
   app.enableCors({
