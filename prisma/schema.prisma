@@ -15,6 +15,37 @@ model User {
   password     String
   refreshToken String?
 
+  reviews Review[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model Customer {
+  id    Int     @id @default(autoincrement())
+  name  String?
+  phone String? @unique
+  email String? @unique
+
+  reviews Review[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Review {
+  rating  Int
+  comment String?
+
+  customerId Int
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  businessId Int
+  business   User     @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@id([businessId, customerId])
+  @@index([customerId])
+  @@index([businessId])
 }
