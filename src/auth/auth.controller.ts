@@ -10,7 +10,7 @@ import {
 import { SignInDto, SignUpDto } from './dto';
 import { AuthService } from './auth.service';
 import { Response } from 'express';
-import { Cookies } from 'src/decorators';
+import { Cookies, Public } from 'src/decorators';
 import { AccessToken } from './types';
 import { refreshTokenCookieOptions } from './constants';
 
@@ -18,6 +18,7 @@ import { refreshTokenCookieOptions } from './constants';
 export class AuthController {
   constructor(private authService: AuthService) {}
 
+  @Public()
   @Post('signup')
   async signUp(
     @Body() dto: SignUpDto,
@@ -31,6 +32,7 @@ export class AuthController {
     return { accessToken };
   }
 
+  @Public()
   @HttpCode(HttpStatus.OK)
   @Post('signin')
   async signIn(
@@ -45,6 +47,7 @@ export class AuthController {
     return { accessToken };
   }
 
+  @Public()
   @HttpCode(HttpStatus.NO_CONTENT)
   @Get('signout')
   async signOut(
@@ -57,6 +60,7 @@ export class AuthController {
     response.clearCookie('jwt', refreshTokenCookieOptions);
   }
 
+  @Public()
   @HttpCode(HttpStatus.OK)
   @Get('refresh')
   async refresh(@Cookies('jwt') refreshToken: string): Promise<AccessToken> {
