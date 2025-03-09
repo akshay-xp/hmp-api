@@ -1,13 +1,7 @@
-import {
-  IsEmail,
-  IsNotEmpty,
-  IsOptional,
-  IsPhoneNumber,
-  IsString,
-} from 'class-validator';
+import { IsEmail, IsOptional, IsPhoneNumber } from 'class-validator';
 import { AtLeastOneField } from 'src/decorators';
 
-export class CreateCustomer {
+export class GetReview {
   @IsOptional()
   @IsEmail()
   email?: string;
@@ -15,11 +9,6 @@ export class CreateCustomer {
   @IsOptional()
   @IsPhoneNumber()
   phone?: string;
-
-  @IsOptional()
-  @IsString()
-  @IsNotEmpty()
-  name?: string;
 
   @AtLeastOneField('email', 'phone')
   atLeastOne!: boolean;

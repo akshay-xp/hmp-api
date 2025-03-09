@@ -1,5 +1,10 @@
 export type JwtPayload = {
-  sub: string;
+  sub: number;
+  email: string;
+};
+
+export type JwtUser = {
+  userId: number;
   email: string;
 };
 
