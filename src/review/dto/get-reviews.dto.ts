@@ -1,15 +1,8 @@
-import { IsEmail, IsOptional, IsPhoneNumber } from 'class-validator';
-import { AtLeastOneField } from 'src/decorators';
+import { Transform } from 'class-transformer';
+import { IsNumber } from 'class-validator';
 
 export class GetReviews {
-  @IsOptional()
-  @IsEmail()
-  email?: string;
-
-  @IsOptional()
-  @IsPhoneNumber()
-  phone?: string;
-
-  @AtLeastOneField('email', 'phone')
-  atLeastOne!: boolean;
+  @Transform(({ value }) => Number(value))
+  @IsNumber()
+  customerId: number;
 }

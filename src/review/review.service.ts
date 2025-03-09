@@ -19,12 +19,11 @@ export class ReviewService {
   }
 
   async getCustomerReview(userId: number, query: GetReview) {
-    const review = await this.prisma.review.findFirst({
+    const review = await this.prisma.review.findUnique({
       where: {
-        businessId: userId,
-        customer: {
-          email: query.email,
-          phone: query.phone,
+        businessId_customerId: {
+          businessId: userId,
+          customerId: query.customerId,
         },
       },
     });
@@ -35,8 +34,7 @@ export class ReviewService {
   async getCustomerReviews(query: GetReviews) {
     const data = await this.prisma.customer.findUnique({
       where: {
-        email: query.email,
-        phone: query.phone,
+        id: query.customerId,
       },
       select: {
         reviews: true,
