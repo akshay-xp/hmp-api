@@ -1,29 +1,32 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { AddReview, GetReview, GetReviews, PatchReview } from './dto';
 import { DeleteReview } from './dto/delete-review.dto';
+import { AddReview, AddReviewParams } from './dto/add-review.dto.js';
+import { GetReview } from './dto/get-review.dto.js';
+import { GetReviews, GetReviewsQuery } from './dto/get-reviews.dto.js';
+import { PatchReview, PatchReviewParams } from './dto/patch-review.dto.js';
 
 @Injectable()
 export class ReviewService {
   constructor(private prisma: PrismaService) {}
 
-  async addReview(userId: number, dto: AddReview) {
+  async addReview(userId: number, params: AddReviewParams, dto: AddReview) {
     return this.prisma.review.create({
       data: {
         rating: dto.rating,
         comment: dto.comment,
         businessId: userId,
-        customerId: dto.customerId,
+        customerId: params.customerId,
       },
     });
   }
 
-  async getCustomerReview(userId: number, query: GetReview) {
+  async getCustomerReview(userId: number, params: GetReview) {
     const review = await this.prisma.review.findUnique({
       where: {
         businessId_customerId: {
           businessId: userId,
-          customerId: query.customerId,
+          customerId: params.customerId,
         },
       },
     });
@@ -31,30 +34,50 @@ export class ReviewService {
     return review;
   }
 
-  async getCustomerReviews(query: GetReviews) {
-    const data = await this.prisma.customer.findUnique({
+  async getCustomerReviews(params: GetReviews, query: GetReviewsQuery) {
+    // change this to 10
+    const take = 2;
+
+    const reviews = await this.prisma.review.findMany({
+      take: take + 1, // fetching one extra to check for more results
+      skip: query.cursorA && query.cursorB ? 1 : 0,
+      cursor:
+        query.cursorA && query.cursorB
+          ? {
+              businessId_customerId: {
+                businessId: query.cursorA,
+                customerId: query.cursorB,
+              },
+            }
+          : undefined,
       where: {
-        id: query.customerId,
+        customerId: params.customerId,
+        rating: query.rating,
       },
-      select: {
-        reviews: true,
-      },
+      orderBy: query.sortBy
+        ? {
+            [query.sortBy]: query.order || 'desc',
+          }
+        : { createdAt: 'desc' },
     });
 
-    if (data) {
-      return {
-        reviews: data.reviews,
-      };
-    }
+    const hasMore = reviews.length > take;
+
+    return {
+      reviews: hasMore ? reviews.slice(0, take) : reviews,
+      cursorA: hasMore ? reviews[take - 1].businessId : -1,
+      cursorB: hasMore ? reviews[take - 1].customerId : -1,
+      hasMore,
+    };
   }
 
-  patchReview(userId: number, dto: PatchReview) {
+  patchReview(userId: number, params: PatchReviewParams, dto: PatchReview) {
     // update only those that are defined
     return this.prisma.review.update({
       where: {
         businessId_customerId: {
           businessId: userId,
-          customerId: dto.customerId,
+          customerId: params.customerId,
         },
       },
       data: {

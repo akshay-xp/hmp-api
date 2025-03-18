@@ -1,3 +1,4 @@
+import { Transform } from 'class-transformer';
 import {
   IsInt,
   IsNumber,
@@ -16,7 +17,10 @@ export class AddReview {
   @IsOptional()
   @IsString()
   comment?: string;
+}
 
+export class AddReviewParams {
+  @Transform(({ value }) => Number(value))
   @IsNumber()
   customerId: number;
 }

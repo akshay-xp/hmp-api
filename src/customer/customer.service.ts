@@ -16,12 +16,23 @@ export class CustomerService {
     });
   }
 
-  getCustomer(query: GetCustomer) {
-    return this.prisma.customer.findUnique({
+  async getCustomer(query: GetCustomer) {
+    const customer = await this.prisma.customer.findUnique({
       where: {
         email: query.email,
         phone: query.phone,
       },
     });
+
+    const reviewCounts = await this.prisma.review.groupBy({
+      by: ['rating'],
+      where: { customerId: customer?.id },
+      _count: { rating: true },
+    });
+
+    return {
+      ...customer,
+      ...reviewCounts,
+    };
   }
 }

@@ -3,51 +3,59 @@ import {
   Controller,
   Delete,
   Get,
+  Param,
   Patch,
   Post,
   Query,
 } from '@nestjs/common';
 import { ReviewService } from './review.service';
 import { GetUser } from 'src/decorators';
-import {
-  AddReview,
-  DeleteReview,
-  GetReview,
-  GetReviews,
-  PatchReview,
-} from './dto';
+import { AddReview, AddReviewParams } from './dto/add-review.dto.js';
+import { GetReviews, GetReviewsQuery } from './dto/get-reviews.dto.js';
+import { PatchReview, PatchReviewParams } from './dto/patch-review.dto.js';
+import { DeleteReview } from './dto/delete-review.dto.js';
+import { GetReview } from './dto/get-review.dto.js';
 
 @Controller('review')
 export class ReviewController {
   constructor(private reviewService: ReviewService) {}
 
-  @Post()
-  addReview(@GetUser('userId') userId: number, @Body() dto: AddReview) {
-    return this.reviewService.addReview(userId, dto);
+  @Post(':customerId')
+  addReview(
+    @GetUser('userId') userId: number,
+    @Param() params: AddReviewParams,
+    @Body() dto: AddReview,
+  ) {
+    return this.reviewService.addReview(userId, params, dto);
   }
 
-  // get should be with email or phone
-  @Get()
+  @Get(':customerId')
   getCustomerReview(
     @GetUser('userId') userId: number,
-    @Query() query: GetReview,
+    @Param() params: GetReview,
   ) {
-    return this.reviewService.getCustomerReview(userId, query);
+    return this.reviewService.getCustomerReview(userId, params);
   }
 
-  // add pagination
-  @Get('/all')
-  getCustomerReviews(@Query() query: GetReviews) {
-    return this.reviewService.getCustomerReviews(query);
+  @Get(':customerId/all')
+  getCustomerReviews(
+    @Param() params: GetReviews,
+    @Query() query: GetReviewsQuery,
+  ) {
+    return this.reviewService.getCustomerReviews(params, query);
   }
 
-  @Patch()
-  pathReview(@GetUser('userId') userId: number, @Body() dto: PatchReview) {
-    return this.reviewService.patchReview(userId, dto);
+  @Patch(':customerId')
+  pathReview(
+    @GetUser('userId') userId: number,
+    @Param() params: PatchReviewParams,
+    @Body() dto: PatchReview,
+  ) {
+    return this.reviewService.patchReview(userId, params, dto);
   }
 
-  @Delete()
-  deleteReview(@GetUser('userId') userId: number, @Body() dto: DeleteReview) {
+  @Delete(':customerId')
+  deleteReview(@GetUser('userId') userId: number, @Param() dto: DeleteReview) {
     return this.reviewService.deleteReview(userId, dto);
   }
 }
