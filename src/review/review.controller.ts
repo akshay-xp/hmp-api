@@ -15,6 +15,7 @@ import { GetReviews, GetReviewsQuery } from './dto/get-reviews.dto.js';
 import { PatchReview, PatchReviewParams } from './dto/patch-review.dto.js';
 import { DeleteReview } from './dto/delete-review.dto.js';
 import { GetReview } from './dto/get-review.dto.js';
+import { GetReviewsCount } from './dto/get-reviews-count.dto.js';
 
 @Controller('review')
 export class ReviewController {
@@ -43,6 +44,11 @@ export class ReviewController {
     @Query() query: GetReviewsQuery,
   ) {
     return this.reviewService.getCustomerReviews(params, query);
+  }
+
+  @Get(':customerId/count')
+  getCustomerReviewsCount(@Param() params: GetReviewsCount) {
+    return this.reviewService.getCustomerReviewsCount(params);
   }
 
   @Patch(':customerId')

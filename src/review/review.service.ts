@@ -5,6 +5,7 @@ import { AddReview, AddReviewParams } from './dto/add-review.dto.js';
 import { GetReview } from './dto/get-review.dto.js';
 import { GetReviews, GetReviewsQuery } from './dto/get-reviews.dto.js';
 import { PatchReview, PatchReviewParams } from './dto/patch-review.dto.js';
+import { GetReviewsCount } from './dto/get-reviews-count.dto.js';
 
 @Injectable()
 export class ReviewService {
@@ -96,5 +97,23 @@ export class ReviewService {
         },
       },
     });
+  }
+
+  async getCustomerReviewsCount(params: GetReviewsCount) {
+    const data = await this.prisma.review.groupBy({
+      by: ['rating'],
+      where: {
+        customerId: params.customerId,
+      },
+      _count: {
+        rating: true,
+      },
+    });
+
+    const response = [];
+    for (let i = 0; i < data.length; i++) {
+      response[data[i].rating] = data[i]._count.rating;
+    }
+    return response;
   }
 }

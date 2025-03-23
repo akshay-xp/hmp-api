@@ -24,15 +24,6 @@ export class CustomerService {
       },
     });
 
-    const reviewCounts = await this.prisma.review.groupBy({
-      by: ['rating'],
-      where: { customerId: customer?.id },
-      _count: { rating: true },
-    });
-
-    return {
-      ...customer,
-      ...reviewCounts,
-    };
+    return customer;
   }
 }
