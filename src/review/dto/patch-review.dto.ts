@@ -1,5 +1,6 @@
 import { Transform } from 'class-transformer';
 import {
+  IsArray,
   IsInt,
   IsNumber,
   IsOptional,
@@ -18,6 +19,11 @@ export class PatchReview {
   @IsOptional()
   @IsString()
   comment?: string;
+
+  @IsOptional()
+  @IsArray()
+  @IsInt({ each: true })
+  tags?: number[];
 }
 
 export class PatchReviewParams {

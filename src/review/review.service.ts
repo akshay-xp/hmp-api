@@ -16,8 +16,20 @@ export class ReviewService {
       data: {
         rating: dto.rating,
         comment: dto.comment,
+        tags: {
+          create: dto.tags?.map((tagId) => ({
+            tag: {
+              connect: {
+                id: tagId,
+              },
+            },
+          })),
+        },
         businessId: userId,
         customerId: params.customerId,
+      },
+      include: {
+        tags: true,
       },
     });
   }
@@ -29,6 +41,9 @@ export class ReviewService {
           businessId: userId,
           customerId: params.customerId,
         },
+      },
+      include: {
+        tags: true,
       },
     });
 
@@ -54,6 +69,9 @@ export class ReviewService {
       where: {
         customerId: params.customerId,
         rating: query.rating,
+      },
+      include: {
+        tags: true,
       },
       orderBy: query.sortBy
         ? {
@@ -84,6 +102,22 @@ export class ReviewService {
       data: {
         rating: dto.rating,
         comment: dto.comment,
+        tags: {
+          deleteMany: {
+            businessId: userId,
+            customerId: params.customerId,
+          },
+          create: dto.tags?.map((tagId) => ({
+            tag: {
+              connect: {
+                id: tagId,
+              },
+            },
+          })),
+        },
+      },
+      include: {
+        tags: true,
       },
     });
   }
