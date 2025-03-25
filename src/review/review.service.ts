@@ -50,8 +50,9 @@ export class ReviewService {
     return review;
   }
 
+  // todo: only get those with a comment
   async getCustomerReviews(params: GetReviews, query: GetReviewsQuery) {
-    // change this to 10
+    // todo: change this to 10
     const take = 2;
 
     const reviews = await this.prisma.review.findMany({
@@ -134,7 +135,7 @@ export class ReviewService {
   }
 
   async getCustomerReviewsCount(params: GetReviewsCount) {
-    const data = await this.prisma.review.groupBy({
+    const ratingsCountPromise = this.prisma.review.groupBy({
       by: ['rating'],
       where: {
         customerId: params.customerId,
@@ -144,10 +145,31 @@ export class ReviewService {
       },
     });
 
-    const response = [];
-    for (let i = 0; i < data.length; i++) {
-      response[data[i].rating] = data[i]._count.rating;
+    const tagsCountPromise = this.prisma.tagsOnReviews.groupBy({
+      by: ['tagId'],
+      where: {
+        customerId: params.customerId,
+      },
+      _count: {
+        tagId: true,
+      },
+    });
+
+    const [ratingsCountList, tagsCountList] = await Promise.all([
+      ratingsCountPromise,
+      tagsCountPromise,
+    ]);
+    const ratings: Record<number, number> = {};
+    const tags: Record<number, number> = {};
+    for (const count of ratingsCountList) {
+      ratings[count.rating] = count._count.rating;
     }
-    return response;
+    for (const count of tagsCountList) {
+      tags[count.tagId] = count._count.tagId;
+    }
+    return {
+      ratings,
+      tags,
+    };
   }
 }
