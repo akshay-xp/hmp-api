@@ -7,11 +7,17 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum Role {
+  ADMIN
+  BUSINESS
+}
+
 model User {
   id    Int    @id @default(autoincrement())
   email String @unique
   name  String
 
+  role         Role    @default(BUSINESS)
   password     String
   refreshToken String?
 
