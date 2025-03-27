@@ -11,6 +11,7 @@ import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { ConfigService } from '@nestjs/config';
 import { AccessToken, AuthTokens } from './types';
 import { accessTokenAge, refreshTokenAge } from './constants';
+import { Role } from '@prisma/client';
 
 @Injectable()
 export class AuthService {
@@ -20,10 +21,15 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  async signTokens(userId: number, email: string): Promise<AuthTokens> {
+  async signTokens(
+    userId: number,
+    email: string,
+    role?: Role,
+  ): Promise<AuthTokens> {
     const payload = {
       sub: userId,
       email,
+      role: role ?? Role.BUSINESS,
     };
 
     const [accessToken, refreshToken] = await Promise.all([
@@ -99,7 +105,7 @@ export class AuthService {
       throw new ForbiddenException('Credentials Incorrect');
     }
 
-    const tokens = await this.signTokens(user.id, user.email);
+    const tokens = await this.signTokens(user.id, user.email, user.role);
     await this.updateRefreshToken(user.id, tokens.refreshToken);
     return tokens;
   }
@@ -131,10 +137,15 @@ export class AuthService {
     }
   }
 
-  async signAccessToken(userId: number, email: string): Promise<AccessToken> {
+  async signAccessToken(
+    userId: number,
+    email: string,
+    role?: Role,
+  ): Promise<AccessToken> {
     const payload = {
       sub: userId,
       email,
+      role: role ?? Role.BUSINESS,
     };
 
     const accessToken = await this.jwtService.signAsync(payload, {
@@ -178,6 +189,6 @@ export class AuthService {
       throw new ForbiddenException('Access Denied');
     }
 
-    return this.signAccessToken(user.id, user.email);
+    return this.signAccessToken(user.id, user.email, user.role);
   }
 }
