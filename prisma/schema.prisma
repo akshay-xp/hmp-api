@@ -21,7 +21,8 @@ model User {
   password     String
   refreshToken String?
 
-  reviews Review[]
+  reviews       Review[]
+  reviewReports ReviewReport[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -48,7 +49,8 @@ model Review {
   businessId Int
   business   User     @relation(fields: [businessId], references: [id], onDelete: Cascade)
 
-  tags TagsOnReviews[]
+  tags          TagsOnReviews[]
+  reviewReports ReviewReport[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -81,4 +83,17 @@ model TagsOnReviews {
   @@index([tagId])
   @@index([businessId])
   @@index([customerId])
+}
+
+model ReviewReport {
+  id     Int    @id @default(autoincrement())
+  reason String
+
+  customerId Int
+  businessId Int
+  review     Review @relation(fields: [businessId, customerId], references: [businessId, customerId], onDelete: Cascade)
+  reporterId Int
+  reporter   User   @relation(fields: [reporterId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
 }
