@@ -9,6 +9,7 @@ import { CustomerModule } from './customer/customer.module';
 import { ReviewModule } from './review/review.module';
 import { UsersModule } from './users/users.module';
 import { ReviewTagsModule } from './review-tags/review-tags.module';
+import { ReviewReportsModule } from './review-reports/review-reports.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { ReviewTagsModule } from './review-tags/review-tags.module';
     ReviewModule,
     UsersModule,
     ReviewTagsModule,
+    ReviewReportsModule,
   ],
   controllers: [AppController],
   providers: [AppService, PrismaService],

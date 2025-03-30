@@ -60,8 +60,8 @@ export class ReviewController {
     return this.reviewService.patchReview(userId, params, dto);
   }
 
-  @Delete(':customerId')
-  deleteReview(@GetUser('userId') userId: number, @Param() dto: DeleteReview) {
-    return this.reviewService.deleteReview(userId, dto);
+  @Delete()
+  deleteReview(@Body() dto: DeleteReview) {
+    return this.reviewService.deleteReview(dto);
   }
 }

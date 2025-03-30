@@ -1,7 +1,11 @@
 import { Transform } from 'class-transformer';
-import { IsNumber } from 'class-validator';
+import { IsNumber, IsOptional, IsString } from 'class-validator';
 
-export class DeleteReview {
+export class CreateReviewReport {
+  @IsOptional()
+  @IsString()
+  reason?: string;
+
   @Transform(({ value }) => Number(value))
   @IsNumber()
   customerId: number;

@@ -123,11 +123,12 @@ export class ReviewService {
     });
   }
 
-  async deleteReview(userId: number, dto: DeleteReview) {
+  // todo: allow delete only if it's admin or the reviewer
+  async deleteReview(dto: DeleteReview) {
     await this.prisma.review.delete({
       where: {
         businessId_customerId: {
-          businessId: userId,
+          businessId: dto.businessId,
           customerId: dto.customerId,
         },
       },
