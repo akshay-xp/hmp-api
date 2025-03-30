@@ -3,9 +3,9 @@ import {
   ForbiddenException,
   Injectable,
 } from '@nestjs/common';
-import { PrismaService } from 'src/prisma/prisma.service.js';
-import { UpdateUserDto } from './dto/update-user.dto.js';
-import { ChangePasswordDto } from './dto/change-password.dto.js';
+import { PrismaService } from 'src/prisma/prisma.service';
+import { UpdateUserDto } from './dto/update-user.dto';
+import { ChangePasswordDto } from './dto/change-password.dto';
 import { hash, verify } from 'argon2';
 
 @Injectable()

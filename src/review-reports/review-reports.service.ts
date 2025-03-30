@@ -11,8 +11,7 @@ export class ReviewReportsService {
     const report = await this.prisma.reviewReport.create({
       data: {
         reporterId: reporterId,
-        businessId: dto.businessId,
-        customerId: dto.customerId,
+        reviewId: dto.reviewId,
         reason: dto.reason,
       },
     });

@@ -105,8 +105,7 @@ export class ReviewService {
         comment: dto.comment,
         tags: {
           deleteMany: {
-            businessId: userId,
-            customerId: params.customerId,
+            reviewId: params.customerId,
           },
           create: dto.tags?.map((tagId) => ({
             tag: {
@@ -149,7 +148,7 @@ export class ReviewService {
     const tagsCountPromise = this.prisma.tagsOnReviews.groupBy({
       by: ['tagId'],
       where: {
-        customerId: params.customerId,
+        reviewId: params.customerId,
       },
       _count: {
         tagId: true,

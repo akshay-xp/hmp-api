@@ -6,10 +6,10 @@ import {
   HttpStatus,
   Patch,
 } from '@nestjs/common';
-import { GetUser } from 'src/decorators/get-jwt-user.decorator.js';
-import { UsersService } from './users.service.js';
-import { UpdateUserDto } from './dto/update-user.dto.js';
-import { ChangePasswordDto } from './dto/change-password.dto.js';
+import { GetUser } from 'src/decorators/get-jwt-user.decorator';
+import { UsersService } from './users.service';
+import { UpdateUserDto } from './dto/update-user.dto';
+import { ChangePasswordDto } from './dto/change-password.dto';
 
 @Controller('users')
 export class UsersController {

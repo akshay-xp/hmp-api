@@ -8,9 +8,5 @@ export class CreateReviewReport {
 
   @Transform(({ value }) => Number(value))
   @IsNumber()
-  customerId: number;
-
-  @Transform(({ value }) => Number(value))
-  @IsNumber()
-  businessId: number;
+  reviewId: number;
 }
