@@ -41,6 +41,7 @@ model Customer {
 }
 
 model Review {
+  id      Int     @id @default(autoincrement())
   rating  Int
   comment String?
 
@@ -55,7 +56,7 @@ model Review {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@id([businessId, customerId])
+  @@unique([businessId, customerId])
   @@index([customerId])
   @@index([businessId])
 }
@@ -72,34 +73,30 @@ model ReviewTag {
   reviews TagsOnReviews[]
 }
 
-// todo: tagId should have @id with auto-increment
 model TagsOnReviews {
-  tagId      Int
-  tag        ReviewTag @relation(fields: [tagId], references: [id], onDelete: Cascade)
-  customerId Int
-  businessId Int
-  review     Review    @relation(fields: [businessId, customerId], references: [businessId, customerId], onDelete: Cascade)
+  id       Int       @id @default(autoincrement())
+  tagId    Int
+  tag      ReviewTag @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  reviewId Int
+  review   Review    @relation(fields: [reviewId], references: [id], onDelete: Cascade)
 
-  @@id([tagId, businessId, customerId])
+  @@unique([tagId, reviewId])
   @@index([tagId])
-  @@index([businessId])
-  @@index([customerId])
+  @@index([reviewId])
 }
 
 model ReviewReport {
   id     Int     @id @default(autoincrement())
   reason String?
 
-  customerId Int
-  businessId Int
-  review     Review @relation(fields: [businessId, customerId], references: [businessId, customerId], onDelete: Cascade)
+  reviewId   Int
+  review     Review @relation(fields: [reviewId], references: [id], onDelete: Cascade)
   reporterId Int
   reporter   User   @relation(fields: [reporterId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
 
-  @@unique([reporterId, customerId, businessId])
-  @@index([customerId])
-  @@index([businessId])
+  @@unique([reporterId, reviewId])
+  @@index([reviewId])
   @@index([reporterId])
 }
