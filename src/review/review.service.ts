@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { DeleteReview } from './dto/delete-review.dto';
-import { AddReview, AddReviewParams } from './dto/add-review.dto.js';
+import { DeleteReviewParams } from './dto/delete-review.dto';
+import { AddReview } from './dto/add-review.dto.js';
 import { GetReview } from './dto/get-review.dto.js';
 import { GetReviews, GetReviewsQuery } from './dto/get-reviews.dto.js';
 import { PatchReview, PatchReviewParams } from './dto/patch-review.dto.js';
@@ -11,7 +11,7 @@ import { GetReviewsCount } from './dto/get-reviews-count.dto.js';
 export class ReviewService {
   constructor(private prisma: PrismaService) {}
 
-  async addReview(userId: number, params: AddReviewParams, dto: AddReview) {
+  async addReview(userId: number, dto: AddReview) {
     return this.prisma.review.create({
       data: {
         rating: dto.rating,
@@ -26,7 +26,7 @@ export class ReviewService {
           })),
         },
         businessId: userId,
-        customerId: params.customerId,
+        customerId: dto.customerId,
       },
       include: {
         tags: true,
@@ -57,16 +57,12 @@ export class ReviewService {
 
     const reviews = await this.prisma.review.findMany({
       take: take + 1, // fetching one extra to check for more results
-      skip: query.cursorA && query.cursorB ? 1 : 0,
-      cursor:
-        query.cursorA && query.cursorB
-          ? {
-              businessId_customerId: {
-                businessId: query.cursorA,
-                customerId: query.cursorB,
-              },
-            }
-          : undefined,
+      skip: query.cursor ? 1 : 0,
+      cursor: query.cursor
+        ? {
+            id: query.cursor,
+          }
+        : undefined,
       where: {
         customerId: params.customerId,
         rating: query.rating,
@@ -85,8 +81,7 @@ export class ReviewService {
 
     return {
       reviews: hasMore ? reviews.slice(0, take) : reviews,
-      cursorA: hasMore ? reviews[take - 1].businessId : -1,
-      cursorB: hasMore ? reviews[take - 1].customerId : -1,
+      cursor: hasMore ? reviews[take - 1].id : -1,
       hasMore,
     };
   }
@@ -95,17 +90,14 @@ export class ReviewService {
     // update only those that are defined
     return this.prisma.review.update({
       where: {
-        businessId_customerId: {
-          businessId: userId,
-          customerId: params.customerId,
-        },
+        id: params.reviewId,
       },
       data: {
         rating: dto.rating,
         comment: dto.comment,
         tags: {
           deleteMany: {
-            reviewId: params.customerId,
+            reviewId: params.reviewId,
           },
           create: dto.tags?.map((tagId) => ({
             tag: {
@@ -123,13 +115,10 @@ export class ReviewService {
   }
 
   // todo: allow delete only if it's admin or the reviewer
-  async deleteReview(dto: DeleteReview) {
+  async deleteReview(dto: DeleteReviewParams) {
     await this.prisma.review.delete({
       where: {
-        businessId_customerId: {
-          businessId: dto.businessId,
-          customerId: dto.customerId,
-        },
+        id: dto.reviewId,
       },
     });
   }

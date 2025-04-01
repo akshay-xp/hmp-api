@@ -11,12 +11,7 @@ export class GetReviewsQuery {
   @IsOptional()
   @Transform(({ value }) => Number(value))
   @IsNumber()
-  cursorA?: number;
-
-  @IsOptional()
-  @Transform(({ value }) => Number(value))
-  @IsNumber()
-  cursorB?: number;
+  cursor?: number;
 
   @IsOptional()
   @Transform(({ value }) => Number(value))

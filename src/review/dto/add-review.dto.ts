@@ -10,6 +10,10 @@ import {
 } from 'class-validator';
 
 export class AddReview {
+  @Transform(({ value }) => Number(value))
+  @IsNumber()
+  customerId: number;
+
   @IsInt()
   @Min(1)
   @Max(5)
@@ -23,10 +27,4 @@ export class AddReview {
   @IsArray()
   @IsInt({ each: true })
   tags?: number[];
-}
-
-export class AddReviewParams {
-  @Transform(({ value }) => Number(value))
-  @IsNumber()
-  customerId: number;
 }

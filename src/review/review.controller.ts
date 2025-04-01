@@ -3,6 +3,8 @@ import {
   Controller,
   Delete,
   Get,
+  HttpCode,
+  HttpStatus,
   Param,
   Patch,
   Post,
@@ -10,27 +12,24 @@ import {
 } from '@nestjs/common';
 import { ReviewService } from './review.service';
 import { GetUser } from 'src/decorators';
-import { AddReview, AddReviewParams } from './dto/add-review.dto.js';
+import { AddReview } from './dto/add-review.dto.js';
 import { GetReviews, GetReviewsQuery } from './dto/get-reviews.dto.js';
 import { PatchReview, PatchReviewParams } from './dto/patch-review.dto.js';
-import { DeleteReview } from './dto/delete-review.dto.js';
+import { DeleteReviewParams } from './dto/delete-review.dto.js';
 import { GetReview } from './dto/get-review.dto.js';
 import { GetReviewsCount } from './dto/get-reviews-count.dto.js';
 
-@Controller('review')
+@Controller('reviews')
 export class ReviewController {
   constructor(private reviewService: ReviewService) {}
 
-  @Post(':customerId')
-  addReview(
-    @GetUser('userId') userId: number,
-    @Param() params: AddReviewParams,
-    @Body() dto: AddReview,
-  ) {
-    return this.reviewService.addReview(userId, params, dto);
+  @HttpCode(HttpStatus.CREATED)
+  @Post()
+  addReview(@GetUser('userId') userId: number, @Body() dto: AddReview) {
+    return this.reviewService.addReview(userId, dto);
   }
 
-  @Get(':customerId')
+  @Get('business/customer/:customerId')
   getCustomerReview(
     @GetUser('userId') userId: number,
     @Param() params: GetReview,
@@ -38,7 +37,7 @@ export class ReviewController {
     return this.reviewService.getCustomerReview(userId, params);
   }
 
-  @Get(':customerId/all')
+  @Get('customer/:customerId')
   getCustomerReviews(
     @Param() params: GetReviews,
     @Query() query: GetReviewsQuery,
@@ -46,12 +45,12 @@ export class ReviewController {
     return this.reviewService.getCustomerReviews(params, query);
   }
 
-  @Get(':customerId/count')
+  @Get('customer/:customerId/counts')
   getCustomerReviewsCount(@Param() params: GetReviewsCount) {
     return this.reviewService.getCustomerReviewsCount(params);
   }
 
-  @Patch(':customerId')
+  @Patch('review/:reviewId')
   pathReview(
     @GetUser('userId') userId: number,
     @Param() params: PatchReviewParams,
@@ -60,8 +59,9 @@ export class ReviewController {
     return this.reviewService.patchReview(userId, params, dto);
   }
 
-  @Delete()
-  deleteReview(@Body() dto: DeleteReview) {
-    return this.reviewService.deleteReview(dto);
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @Delete('review/:reviewId')
+  deleteReview(@Param() params: DeleteReviewParams) {
+    return this.reviewService.deleteReview(params);
   }
 }

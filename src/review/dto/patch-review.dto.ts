@@ -29,5 +29,5 @@ export class PatchReview {
 export class PatchReviewParams {
   @Transform(({ value }) => Number(value))
   @IsNumber()
-  customerId: number;
+  reviewId: number;
 }

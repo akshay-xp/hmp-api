@@ -1,12 +1,8 @@
 import { Transform } from 'class-transformer';
 import { IsNumber } from 'class-validator';
 
-export class DeleteReview {
+export class DeleteReviewParams {
   @Transform(({ value }) => Number(value))
   @IsNumber()
-  customerId: number;
-
-  @Transform(({ value }) => Number(value))
-  @IsNumber()
-  businessId: number;
+  reviewId: number;
 }
