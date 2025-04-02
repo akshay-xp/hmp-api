@@ -10,7 +10,8 @@ export class GetReviews {
 export class GetReviewsQuery {
   @IsOptional()
   @Transform(({ value }) => Number(value))
-  @IsNumber()
+  @IsInt()
+  @Min(1)
   cursor?: number;
 
   @IsOptional()

@@ -1,4 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import {
+  ConflictException,
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { DeleteReviewParams } from './dto/delete-review.dto';
 import { AddReview } from './dto/add-review.dto.js';
@@ -6,32 +11,50 @@ import { GetReview } from './dto/get-review.dto.js';
 import { GetReviews, GetReviewsQuery } from './dto/get-reviews.dto.js';
 import { PatchReview, PatchReviewParams } from './dto/patch-review.dto.js';
 import { GetReviewsCount } from './dto/get-reviews-count.dto.js';
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
+import { Role } from '@prisma/client';
 
 @Injectable()
 export class ReviewService {
   constructor(private prisma: PrismaService) {}
 
   async addReview(userId: number, dto: AddReview) {
-    return this.prisma.review.create({
-      data: {
-        rating: dto.rating,
-        comment: dto.comment,
-        tags: {
-          create: dto.tags?.map((tagId) => ({
-            tag: {
-              connect: {
-                id: tagId,
+    try {
+      const response = await this.prisma.review.create({
+        data: {
+          rating: dto.rating,
+          comment: dto.comment,
+          tags: {
+            create: dto.tags?.map((tagId) => ({
+              tag: {
+                connect: {
+                  id: tagId,
+                },
               },
-            },
-          })),
+            })),
+          },
+          businessId: userId,
+          customerId: dto.customerId,
         },
-        businessId: userId,
-        customerId: dto.customerId,
-      },
-      include: {
-        tags: true,
-      },
-    });
+        include: {
+          tags: true,
+        },
+      });
+
+      return response;
+    } catch (error) {
+      if (error instanceof PrismaClientKnownRequestError) {
+        switch (error.code) {
+          case 'P2002':
+            throw new ConflictException('Review already exists');
+          case 'P2003':
+            throw new NotFoundException('Customer does not exist');
+          case 'P2025':
+            throw new NotFoundException('One or more tags not found');
+        }
+      }
+      throw error;
+    }
   }
 
   async getCustomerReview(userId: number, params: GetReview) {
@@ -47,13 +70,15 @@ export class ReviewService {
       },
     });
 
+    if (!review) {
+      throw new NotFoundException('Review not found');
+    }
+
     return review;
   }
 
-  // todo: only get those with a comment
   async getCustomerReviews(params: GetReviews, query: GetReviewsQuery) {
-    // todo: change this to 10
-    const take = 2;
+    const take = 10;
 
     const reviews = await this.prisma.review.findMany({
       take: take + 1, // fetching one extra to check for more results
@@ -66,6 +91,7 @@ export class ReviewService {
       where: {
         customerId: params.customerId,
         rating: query.rating,
+        comment: { not: null },
       },
       include: {
         tags: true,
@@ -77,6 +103,10 @@ export class ReviewService {
         : { createdAt: 'desc' },
     });
 
+    if (!reviews.length) {
+      throw new NotFoundException('No reviews found');
+    }
+
     const hasMore = reviews.length > take;
 
     return {
@@ -86,41 +116,73 @@ export class ReviewService {
     };
   }
 
-  patchReview(userId: number, params: PatchReviewParams, dto: PatchReview) {
-    // update only those that are defined
-    return this.prisma.review.update({
-      where: {
-        id: params.reviewId,
-      },
-      data: {
-        rating: dto.rating,
-        comment: dto.comment,
-        tags: {
-          deleteMany: {
-            reviewId: params.reviewId,
-          },
-          create: dto.tags?.map((tagId) => ({
-            tag: {
-              connect: {
-                id: tagId,
-              },
-            },
-          })),
+  async patchReview(
+    userId: number,
+    params: PatchReviewParams,
+    dto: PatchReview,
+  ) {
+    try {
+      const response = await this.prisma.review.update({
+        where: {
+          id: params.reviewId,
+          businessId: userId,
         },
-      },
-      include: {
-        tags: true,
-      },
-    });
+        data: {
+          rating: dto.rating,
+          comment: dto.comment,
+          tags: {
+            deleteMany: {},
+            create: dto.tags?.map((tagId) => ({
+              tag: {
+                connect: {
+                  id: tagId,
+                },
+              },
+            })),
+          },
+        },
+        include: {
+          tags: true,
+        },
+      });
+
+      return response;
+    } catch (error) {
+      if (error instanceof PrismaClientKnownRequestError) {
+        switch (error.code) {
+          case 'P2025':
+            throw new NotFoundException('Review and/or tag(s) not found');
+        }
+      }
+      throw error;
+    }
   }
 
-  // todo: allow delete only if it's admin or the reviewer
-  async deleteReview(dto: DeleteReviewParams) {
-    await this.prisma.review.delete({
+  async deleteReview(userId: number, role: Role, dto: DeleteReviewParams) {
+    const review = await this.prisma.review.findUnique({
+      where: {
+        id: dto.reviewId,
+      },
+      select: {
+        businessId: true,
+      },
+    });
+
+    if (!review) {
+      throw new NotFoundException('Review not found');
+    }
+
+    if (role !== 'ADMIN' && review.businessId !== userId) {
+      throw new ForbiddenException('You are not allowed to delete this review');
+    }
+
+    const response = await this.prisma.review.delete({
       where: {
         id: dto.reviewId,
       },
     });
+
+    return response;
   }
 
   async getCustomerReviewsCount(params: GetReviewsCount) {
@@ -137,7 +199,9 @@ export class ReviewService {
     const tagsCountPromise = this.prisma.tagsOnReviews.groupBy({
       by: ['tagId'],
       where: {
-        reviewId: params.customerId,
+        review: {
+          customerId: params.customerId,
+        },
       },
       _count: {
         tagId: true,
@@ -148,6 +212,11 @@ export class ReviewService {
       ratingsCountPromise,
       tagsCountPromise,
     ]);
+
+    if (ratingsCountList.length === 0 && tagsCountList.length === 0) {
+      throw new NotFoundException('No reviews found for this customer');
+    }
+
     const ratings: Record<number, number> = {};
     const tags: Record<number, number> = {};
     for (const count of ratingsCountList) {

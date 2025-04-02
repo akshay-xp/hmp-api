@@ -18,6 +18,7 @@ import { PatchReview, PatchReviewParams } from './dto/patch-review.dto.js';
 import { DeleteReviewParams } from './dto/delete-review.dto.js';
 import { GetReview } from './dto/get-review.dto.js';
 import { GetReviewsCount } from './dto/get-reviews-count.dto.js';
+import { Role } from '@prisma/client';
 
 @Controller('reviews')
 export class ReviewController {
@@ -61,7 +62,11 @@ export class ReviewController {
 
   @HttpCode(HttpStatus.NO_CONTENT)
   @Delete('review/:reviewId')
-  deleteReview(@Param() params: DeleteReviewParams) {
-    return this.reviewService.deleteReview(params);
+  deleteReview(
+    @GetUser('userId') userId: number,
+    @GetUser('role') role: Role,
+    @Param() params: DeleteReviewParams,
+  ) {
+    return this.reviewService.deleteReview(userId, role, params);
   }
 }
